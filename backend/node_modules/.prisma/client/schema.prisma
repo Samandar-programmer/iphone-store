@@ -1,0 +1,49 @@
+// backend/prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id       Int     @id @default(autoincrement())
+  model    String  @db.VarChar(100)
+  color    String  @db.VarChar(50)
+  storage  String  @db.VarChar(20)
+  price    Decimal @db.Decimal(10, 2)
+  imageUrl String? @map("image_url")
+  stock    Int     @default(0)
+
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id           Int      @id @default(autoincrement())
+  customerName String   @map("customer_name") @db.VarChar(100)
+  phone        String   @db.VarChar(20)
+  address      String
+  totalPrice   Decimal  @map("total_price") @db.Decimal(10, 2)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  items OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int     @map("order_id")
+  productId Int     @map("product_id")
+  quantity  Int     @default(1)
+  price     Decimal @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
